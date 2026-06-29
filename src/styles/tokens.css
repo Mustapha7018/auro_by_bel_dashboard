@@ -1,0 +1,46 @@
+:root {
+  --bg: #f4f2ef; /* warm app canvas */
+  --paper: #ffffff;
+  --paper-warm: #faf6f1;
+  --ink: #1a1411;
+  --ink-soft: #4a4540;
+  --ink-faint: #978d84;
+  --line: #e8e2db;
+  --line-soft: #f1ece6;
+
+  /* vibrant brand accent (berry-rose) for primary actions + highlights */
+  --accent: #c83c6b;
+  --accent-deep: #a82f57;
+  --accent-soft: #fbe7ef;
+
+  --gold: #cba142;
+  --gold-deep: #9a7a2f;
+  --gold-soft: #faf0d6;
+  --rose: #d96a92;
+  --rose-soft: #fbe7ef;
+
+  /* status — saturated enough to read at a glance */
+  --green: #1f9d57;
+  --green-soft: #e1f4e9;
+  --amber: #d4881a;
+  --amber-soft: #fbeed6;
+  --red: #d6453f;
+  --red-soft: #fbe5e3;
+
+  /* dark sidebar */
+  --side-bg: #1b1512;
+  --side-panel: #241c18;
+  --side-text: rgba(255, 255, 255, 0.6);
+  --side-strong: #ffffff;
+  --side-hover: rgba(255, 255, 255, 0.08);
+
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 2px rgba(20, 17, 15, 0.04), 0 10px 26px -18px rgba(20, 17, 15, 0.28);
+  --shadow-lift: 0 24px 60px -28px rgba(20, 17, 15, 0.45);
+
+  --sidebar-w: 16rem;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
