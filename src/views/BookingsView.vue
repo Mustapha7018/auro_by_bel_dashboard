@@ -61,7 +61,6 @@ const filtered = computed(() =>
             <th>Phone</th>
             <th>Service</th>
             <th>When</th>
-            <th>Deposit</th>
             <th>Status</th>
             <th>Set status</th>
             <th></th>
@@ -76,7 +75,6 @@ const filtered = computed(() =>
             </td>
             <td>{{ b.service }}</td>
             <td>{{ dayMonth(b.date) }} · {{ b.time }}</td>
-            <td>{{ money(b.deposit) }}</td>
             <td><span class="pill" :class="pillClass(b.status)">{{ b.status }}</span></td>
             <td>
               <select class="select" style="max-width: 11rem" :value="b.status" @change="bookings.setStatus(b.id, $event.target.value)">
@@ -88,7 +86,7 @@ const filtered = computed(() =>
             </td>
           </tr>
           <tr v-if="!filtered.length">
-            <td colspan="8"><p class="empty">No bookings here.</p></td>
+            <td colspan="7"><p class="empty">No bookings here.</p></td>
           </tr>
         </tbody>
       </table>
