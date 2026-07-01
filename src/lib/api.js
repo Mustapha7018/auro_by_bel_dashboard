@@ -45,6 +45,7 @@ export const api = {
   // auth
   login: (body) => request('/auth/login', { method: 'POST', body, auth: false }),
   me: () => request('/auth/me'),
+  changePassword: (body) => request('/auth/password', { method: 'POST', body }),
 
   // products
   products: () => request('/admin/products'),
@@ -57,6 +58,7 @@ export const api = {
   // bookings
   bookings: () => request('/admin/bookings'),
   setBookingStatus: (id, status) => request(`/admin/bookings/${id}`, { method: 'PATCH', body: { status } }),
+  deleteBooking: (id) => request(`/admin/bookings/${id}`, { method: 'DELETE' }),
 
   // availability
   availability: () => request('/availability', { auth: false }),

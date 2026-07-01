@@ -39,10 +39,6 @@ const submit = () => auth.signIn(email.value.trim(), password.value)
           {{ auth.busy ? 'Signing in…' : 'Sign in' }}
         </button>
       </form>
-
-      <p class="login__demo">
-        Demo access — <strong>bel@aurabybel.com</strong> / <strong>studio</strong>
-      </p>
     </div>
   </div>
 </template>

@@ -21,11 +21,13 @@ const blank = () => ({
   status: 'instock',
   price: null,
   compareAt: null,
-  deposit: null,
   variant: '',
   description: '',
   badge: '',
 })
+
+// deposit is always one-third of the price (computed by the backend too)
+const depositPreview = computed(() => Math.round((Number(form.price) || 0) / 3))
 
 const form = reactive(blank())
 const tagsText = ref('')
@@ -61,7 +63,7 @@ const hydrate = (p) => {
   Object.assign(form, blank(), p ? {
     name: p.name, type: p.type, category_id: p.category, mode: p.mode,
     status: p.status, price: p.price, compareAt: p.compareAt,
-    deposit: p.deposit, variant: p.variant || '',
+    variant: p.variant || '',
     description: p.description, badge: p.badge || '',
   } : {})
   if (!form.category_id) form.category_id = categories.value[0]?.id || ''
@@ -84,7 +86,6 @@ const submit = () => {
     status: form.mode === 'shop' ? form.status : 'instock',
     price: Number(form.price) || 0,
     compare_at: form.compareAt ? Number(form.compareAt) : null,
-    deposit: Number(form.deposit) || 0,
     variant: form.variant.trim() || null,
     description: form.description.trim(),
     badge: form.badge.trim() || null,
@@ -193,10 +194,9 @@ const submit = () => {
       </div>
     </div>
 
-    <div class="field" style="max-width: 12rem">
-      <label>Deposit (₵)</label>
-      <input v-model="form.deposit" type="number" min="0" class="input" placeholder="0" />
-      <span class="hint">Secures a pre-order or booking.</span>
+    <div class="field">
+      <label>Pre-order / booking deposit</label>
+      <p class="hint">Automatically one-third of the price — <strong>₵{{ depositPreview.toLocaleString() }}</strong>.</p>
     </div>
 
     <div class="field">

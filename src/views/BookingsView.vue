@@ -7,6 +7,16 @@ const bookings = useBookingsStore()
 const filter = ref('all')
 onMounted(() => bookings.load())
 
+const onDelete = async (b) => {
+  if (confirm(`Delete ${b.customerName}'s ${b.service} booking?`)) {
+    try {
+      await bookings.remove(b.id)
+    } catch (e) {
+      alert(e.message || 'Could not delete.')
+    }
+  }
+}
+
 const pillClass = (s) =>
   ({ requested: 'pill--amber', confirmed: 'pill--green', completed: 'pill--grey', cancelled: 'pill--red' })[s]
 
@@ -40,16 +50,22 @@ const filtered = computed(() =>
         <thead>
           <tr>
             <th>Client</th>
+            <th>Phone</th>
             <th>Service</th>
             <th>When</th>
             <th>Deposit</th>
             <th>Status</th>
             <th>Set status</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="b in filtered" :key="b.id">
             <td class="cell-strong">{{ b.customerName }}</td>
+            <td>
+              <a v-if="b.customerPhone" :href="`tel:${b.customerPhone}`" class="cell-muted">{{ b.customerPhone }}</a>
+              <span v-else class="cell-muted">—</span>
+            </td>
             <td>{{ b.service }}</td>
             <td>{{ dayMonth(b.date) }} · {{ b.time }}</td>
             <td>{{ money(b.deposit) }}</td>
@@ -59,9 +75,12 @@ const filtered = computed(() =>
                 <option v-for="s in BOOKING_STATUSES" :key="s" :value="s" style="text-transform: capitalize">{{ s }}</option>
               </select>
             </td>
+            <td>
+              <button class="btn btn--sm btn--danger" @click="onDelete(b)">Delete</button>
+            </td>
           </tr>
           <tr v-if="!filtered.length">
-            <td colspan="6"><p class="empty">No bookings here.</p></td>
+            <td colspan="8"><p class="empty">No bookings here.</p></td>
           </tr>
         </tbody>
       </table>

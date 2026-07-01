@@ -2,13 +2,16 @@
 import { useBookingsStore } from '@/store/bookings'
 import { useOrdersStore } from '@/store/orders'
 import { useProductsStore } from '@/store/products'
+import { ref } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import AppIcon from './AppIcon.vue'
+import ChangePassword from './ChangePassword.vue'
 
 const bookings = useBookingsStore()
 const orders = useOrdersStore()
 const products = useProductsStore()
 const auth = useAuthStore()
+const pwOpen = ref(false)
 
 const links = [
   { to: '/', icon: 'overview', label: 'Overview' },
@@ -60,10 +63,15 @@ const badge = (to) => {
         <p class="side__me">{{ auth.user?.name || 'Bel' }}</p>
         <p class="side__role">{{ auth.user?.role || 'Owner' }}</p>
       </div>
+      <button class="side__logout" type="button" title="Change password" aria-label="Change password" @click="pwOpen = true">
+        <AppIcon name="lock" :size="16" />
+      </button>
       <button class="side__logout" type="button" title="Sign out" aria-label="Sign out" @click="auth.signOut()">
         <AppIcon name="logout" :size="17" />
       </button>
     </div>
+
+    <ChangePassword :open="pwOpen" @close="pwOpen = false" />
   </aside>
 </template>
 

@@ -9,6 +9,7 @@ export function normalizeBooking(b) {
     id: b.id,
     customerId: b.customer_id,
     customerName: b.customer_name,
+    customerPhone: b.customer_phone,
     productId: b.product_id,
     service: b.service,
     date: b.date,
@@ -50,6 +51,10 @@ export const useBookingsStore = defineStore('bookings', {
       const updated = normalizeBooking(await api.setBookingStatus(id, status))
       const i = this.items.findIndex((b) => b.id === id)
       if (i >= 0) this.items[i] = updated
+    },
+    async remove(id) {
+      await api.deleteBooking(id)
+      this.items = this.items.filter((b) => b.id !== id)
     },
   },
 })
