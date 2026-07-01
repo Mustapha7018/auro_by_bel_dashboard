@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useProductsStore } from '@/store/products'
 import { money } from '@/utils'
 import AppModal from '@/components/AppModal.vue'
@@ -12,6 +12,9 @@ const search = ref('')
 const filter = ref('all') // all | shop | appointment
 const modalOpen = ref(false)
 const editing = ref(null)
+const saving = ref(false)
+
+onMounted(() => products.load())
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -30,13 +33,26 @@ const openEdit = (p) => {
   editing.value = p
   modalOpen.value = true
 }
-const onSave = (payload) => {
-  if (editing.value) products.update(editing.value.id, payload)
-  else products.add(payload)
-  modalOpen.value = false
+const onSave = async (payload) => {
+  saving.value = true
+  try {
+    if (editing.value) await products.update(editing.value.id, payload)
+    else await products.add(payload)
+    modalOpen.value = false
+  } catch (e) {
+    alert(e.message || 'Could not save the product.')
+  } finally {
+    saving.value = false
+  }
 }
-const onDelete = (p) => {
-  if (confirm(`Delete “${p.name}”?`)) products.remove(p.id)
+const onDelete = async (p) => {
+  if (confirm(`Delete “${p.name}”?`)) {
+    try {
+      await products.remove(p.id)
+    } catch (e) {
+      alert(e.message || 'Could not delete.')
+    }
+  }
 }
 </script>
 
@@ -78,7 +94,7 @@ const onDelete = (p) => {
                 <ProductThumb :name="p.name" :type="p.type" :image="p.image" />
                 <div>
                   <div class="cell-strong">{{ p.name }}</div>
-                  <div class="cell-muted" style="font-size: 0.74rem">{{ p.category }}</div>
+                  <div class="cell-muted" style="font-size: 0.74rem">{{ p.categoryName }}</div>
                 </div>
               </div>
             </td>

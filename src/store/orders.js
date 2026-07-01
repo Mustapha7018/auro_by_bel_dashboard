@@ -1,22 +1,18 @@
 import { defineStore } from 'pinia'
-import { seedOrders } from '@/data/seed'
-import { uid } from '@/utils'
+import { api } from '@/lib/api'
 
 export const ORDER_STATUSES = ['processing', 'delivered', 'cancelled']
 export const PAYMENT_METHODS = ['Cash', 'Mobile Money', 'Bank transfer', 'Card']
 
-/** Sum of payments recorded against an order. */
-export const orderPaid = (o) => (o.payments || []).reduce((s, p) => s + (p.amount || 0), 0)
-/** Outstanding balance (never negative). */
-export const orderBalance = (o) => Math.max(0, (o.total || 0) - orderPaid(o))
-export const isSettled = (o) => orderBalance(o) === 0
+// The API already computes these; kept as helpers so views read cleanly.
+export const orderPaid = (o) => o.paid ?? 0
+export const orderBalance = (o) => o.balance ?? 0
 
 export const useOrdersStore = defineStore('orders', {
-  state: () => ({ items: seedOrders }),
+  state: () => ({ items: [], loaded: false, loading: false }),
 
   getters: {
     sorted: (s) => [...s.items].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-    // collected = everything actually paid; outstanding = unpaid balances
     revenue: (s) =>
       s.items.filter((o) => o.status !== 'cancelled').reduce((sum, o) => sum + orderPaid(o), 0),
     outstanding: (s) =>
@@ -28,23 +24,29 @@ export const useOrdersStore = defineStore('orders', {
   },
 
   actions: {
-    setStatus(id, status) {
-      const o = this.items.find((x) => x.id === id)
-      if (o) o.status = status
+    async load() {
+      if (this.loaded || this.loading) return
+      this.loading = true
+      try {
+        this.items = await api.orders()
+        this.loaded = true
+      } finally {
+        this.loading = false
+      }
     },
-
-    /** Record a payment Bel received against an order. */
-    addPayment(id, { amount, method = 'Cash', note = '' }) {
-      const o = this.items.find((x) => x.id === id)
-      const amt = Number(amount)
-      if (!o || !amt || amt <= 0) return
-      o.payments = o.payments || []
-      o.payments.push({ id: uid('pay'), amount: amt, method, note: note.trim(), ts: new Date().toISOString() })
+    _replace(order) {
+      const i = this.items.findIndex((o) => o.id === order.id)
+      if (i >= 0) this.items[i] = order
     },
-
-    removePayment(id, paymentId) {
-      const o = this.items.find((x) => x.id === id)
-      if (o) o.payments = (o.payments || []).filter((p) => p.id !== paymentId)
+    async setStatus(id, status) {
+      this._replace(await api.setOrderStatus(id, status))
+    },
+    async addPayment(id, { amount, method = 'Cash', note = '' }) {
+      this._replace(await api.addPayment(id, { amount: Number(amount), method, note }))
+    },
+    async removePayment(id, paymentId) {
+      const updated = await api.removePayment(id, paymentId)
+      if (updated && updated.id) this._replace(updated)
     },
   },
 })

@@ -1,14 +1,19 @@
 import { defineStore } from 'pinia'
+import { api, getToken, setToken } from '@/lib/api'
 
 /**
- * Admin gate. MOCK for now — checks a demo credential locally and persists the
- * session. Replace `signIn()` with a real call (e.g. Supabase Auth + an admin
- * role check) when the backend lands; the gate and logout stay the same.
+ * Admin gate — real auth against the backend. Only users with role `admin`
+ * are allowed into the dashboard.
  */
-export const DEMO = { email: 'bel@aurabybel.com', password: 'studio' }
-
 export const useAuthStore = defineStore('auth', {
-  state: () => ({ authed: false, user: null }),
+  state: () => ({
+    authed: false,
+    user: null,
+    token: getToken(),
+    busy: false,
+    error: '',
+    ready: false, // finished restoring any existing session
+  }),
 
   getters: {
     initials: (s) =>
@@ -16,17 +21,50 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    signIn(email, password) {
-      if (email.trim().toLowerCase() === DEMO.email && password === DEMO.password) {
-        this.authed = true
-        this.user = { name: 'Bel', email: DEMO.email, role: 'Owner' }
-        return true
+    async init() {
+      if (this.token) {
+        try {
+          const user = await api.me()
+          if (user.role === 'admin') {
+            this.user = user
+            this.authed = true
+          } else {
+            this.signOut()
+          }
+        } catch {
+          this.signOut()
+        }
       }
-      return false
+      this.ready = true
     },
+
+    async signIn(email, password) {
+      this.busy = true
+      this.error = ''
+      try {
+        const { access_token, user } = await api.login({ email, password })
+        if (user.role !== 'admin') {
+          this.error = 'This account is not an administrator.'
+          return false
+        }
+        setToken(access_token)
+        this.token = access_token
+        this.user = user
+        this.authed = true
+        return true
+      } catch (e) {
+        this.error = e.message || 'Could not sign in.'
+        return false
+      } finally {
+        this.busy = false
+      }
+    },
+
     signOut() {
-      this.authed = false
+      setToken(null)
+      this.token = null
       this.user = null
+      this.authed = false
     },
   },
 })

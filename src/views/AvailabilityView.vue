@@ -1,17 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAvailabilityStore, WEEKDAYS } from '@/store/availability'
 import { shortDate } from '@/utils'
 
 const av = useAvailabilityStore()
 const newDate = ref('')
 
+onMounted(() => av.load())
+
 const hours = Array.from({ length: 24 }, (_, h) => h)
 const fmtHour = (h) => `${String(h).padStart(2, '0')}:00`
 
 const addBlock = () => {
   if (newDate.value) {
-    av.blockDate(new Date(newDate.value).toISOString())
+    av.blockDate(newDate.value) // already YYYY-MM-DD from <input type="date">
     newDate.value = ''
   }
 }

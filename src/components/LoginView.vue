@@ -1,18 +1,12 @@
 <script setup>
 import { ref } from 'vue'
-import { useAuthStore, DEMO } from '@/store/auth'
+import { useAuthStore } from '@/store/auth'
 
 const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
-const error = ref('')
 
-const submit = () => {
-  error.value = ''
-  if (!auth.signIn(email.value, password.value)) {
-    error.value = 'Incorrect email or password.'
-  }
-}
+const submit = () => auth.signIn(email.value.trim(), password.value)
 </script>
 
 <template>
@@ -39,13 +33,15 @@ const submit = () => {
           <input v-model="password" type="password" class="input" autocomplete="current-password" placeholder="••••••••" required />
         </div>
 
-        <p v-if="error" class="login__error">{{ error }}</p>
+        <p v-if="auth.error" class="login__error">{{ auth.error }}</p>
 
-        <button type="submit" class="btn btn--primary" style="width: 100%; margin-top: 0.3rem">Sign in</button>
+        <button type="submit" class="btn btn--primary" :disabled="auth.busy" style="width: 100%; margin-top: 0.3rem">
+          {{ auth.busy ? 'Signing in…' : 'Sign in' }}
+        </button>
       </form>
 
       <p class="login__demo">
-        Demo access — <strong>{{ DEMO.email }}</strong> / <strong>{{ DEMO.password }}</strong>
+        Demo access — <strong>bel@aurabybel.com</strong> / <strong>studio</strong>
       </p>
     </div>
   </div>

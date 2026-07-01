@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SidebarNav from '@/components/SidebarNav.vue'
 import LoginView from '@/components/LoginView.vue'
@@ -13,10 +13,14 @@ const today = new Date().toLocaleDateString('en-GB', {
   month: 'long',
 })
 const title = computed(() => route.meta.title || 'Dashboard')
+
+onMounted(() => auth.init())
 </script>
 
 <template>
-  <LoginView v-if="!auth.authed" />
+  <div v-if="!auth.ready" class="loading">Loading…</div>
+
+  <LoginView v-else-if="!auth.authed" />
 
   <div v-else class="app">
     <SidebarNav />
@@ -31,6 +35,12 @@ const title = computed(() => route.meta.title || 'Dashboard')
 </template>
 
 <style scoped>
+.loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+}
 .app__main {
   margin-left: var(--sidebar-w);
   min-height: 100dvh;

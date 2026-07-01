@@ -1,10 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBookingsStore, BOOKING_STATUSES } from '@/store/bookings'
 import { money, dayMonth } from '@/utils'
 
 const bookings = useBookingsStore()
 const filter = ref('all')
+onMounted(() => bookings.load())
 
 const pillClass = (s) =>
   ({ requested: 'pill--amber', confirmed: 'pill--green', completed: 'pill--grey', cancelled: 'pill--red' })[s]

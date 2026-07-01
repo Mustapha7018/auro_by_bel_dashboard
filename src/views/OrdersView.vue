@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import {
   useOrdersStore, ORDER_STATUSES, PAYMENT_METHODS,
   orderPaid, orderBalance,
@@ -9,6 +9,7 @@ import AppModal from '@/components/AppModal.vue'
 
 const orders = useOrdersStore()
 const filter = ref('all')
+onMounted(() => orders.load())
 
 const pillClass = (s) => ({ processing: 'pill--amber', delivered: 'pill--green', cancelled: 'pill--red' })[s]
 const filtered = computed(() =>

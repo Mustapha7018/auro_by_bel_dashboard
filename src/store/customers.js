@@ -1,10 +1,27 @@
 import { defineStore } from 'pinia'
-import { seedCustomers } from '@/data/seed'
+import { api } from '@/lib/api'
 
 export const useCustomersStore = defineStore('customers', {
-  state: () => ({ items: seedCustomers }),
+  state: () => ({ items: [], loaded: false, loading: false }),
+
   getters: {
-    byId: (s) => (id) => s.items.find((c) => c.id === id),
     count: (s) => s.items.length,
+    byId: (s) => (id) => s.items.find((c) => c.id === id),
+  },
+
+  actions: {
+    async load() {
+      if (this.loaded || this.loading) return
+      this.loading = true
+      try {
+        this.items = await api.customers()
+        this.loaded = true
+      } finally {
+        this.loading = false
+      }
+    },
+    detail(id) {
+      return api.customer(id)
+    },
   },
 })

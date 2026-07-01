@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useOrdersStore, orderPaid } from '@/store/orders'
 import { useBookingsStore } from '@/store/bookings'
 import { useProductsStore } from '@/store/products'
@@ -10,6 +10,13 @@ const orders = useOrdersStore()
 const bookings = useBookingsStore()
 const products = useProductsStore()
 const customers = useCustomersStore()
+
+onMounted(() => {
+  orders.load()
+  bookings.load()
+  products.load()
+  customers.load()
+})
 
 const stats = computed(() => [
   { label: 'Revenue collected', value: money(orders.revenue), sub: `${money(orders.outstanding)} outstanding`, accent: 'green' },

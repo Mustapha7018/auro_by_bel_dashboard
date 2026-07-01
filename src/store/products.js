@@ -1,38 +1,60 @@
 import { defineStore } from 'pinia'
-import { seedProducts } from '@/data/seed'
-import { uid } from '@/utils'
+import { api } from '@/lib/api'
 
 const LOW_STOCK = 3
 
 export const useProductsStore = defineStore('products', {
-  state: () => ({ items: seedProducts }),
+  state: () => ({
+    items: [],
+    categories: [],
+    loaded: false,
+    loading: false,
+  }),
 
   getters: {
     count: (s) => s.items.length,
     shopItems: (s) => s.items.filter((p) => p.mode === 'shop'),
     byId: (s) => (id) => s.items.find((p) => p.id === id),
     lowStock: (s) =>
-      s.items.filter((p) => p.mode === 'shop' && p.status === 'instock' && (p.stock ?? 0) <= LOW_STOCK),
+      s.items.filter(
+        (p) => p.mode === 'shop' && p.status === 'instock' && (p.stock ?? 0) <= LOW_STOCK,
+      ),
   },
 
   actions: {
-    add(product) {
-      this.items.unshift({ id: uid('p'), tags: [], options: null, ...product })
+    async load() {
+      if (this.loaded || this.loading) return
+      this.loading = true
+      try {
+        const [items, categories] = await Promise.all([api.products(), api.categories()])
+        this.items = items
+        this.categories = categories
+        this.loaded = true
+      } finally {
+        this.loading = false
+      }
     },
-    update(id, patch) {
-      const p = this.items.find((x) => x.id === id)
-      if (p) Object.assign(p, patch)
+    async add(payload) {
+      const created = await api.createProduct(payload)
+      this.items.unshift(created)
     },
-    remove(id) {
+    async update(id, payload) {
+      const updated = await api.updateProduct(id, payload)
+      const i = this.items.findIndex((p) => p.id === id)
+      if (i >= 0) this.items[i] = updated
+    },
+    async remove(id) {
+      await api.deleteProduct(id)
       this.items = this.items.filter((p) => p.id !== id)
     },
-    adjustStock(id, delta) {
+    async setStock(id, value) {
+      const { stock } = await api.setStock(id, Math.max(0, Number(value) || 0))
       const p = this.items.find((x) => x.id === id)
-      if (p) p.stock = Math.max(0, (p.stock ?? 0) + delta)
+      if (p) p.stock = stock
     },
-    setStock(id, value) {
+    async adjustStock(id, delta) {
       const p = this.items.find((x) => x.id === id)
-      if (p) p.stock = Math.max(0, Number(value) || 0)
+      if (p) await this.setStock(id, Math.max(0, (p.stock ?? 0) + delta))
     },
   },
 })

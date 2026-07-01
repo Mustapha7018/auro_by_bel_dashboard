@@ -1,10 +1,11 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useProductsStore, LOW_STOCK } from '@/store/products'
 import { money } from '@/utils'
 import ProductThumb from '@/components/ProductThumb.vue'
 
 const products = useProductsStore()
+onMounted(() => products.load())
 
 // only physical, buyable stock is tracked
 const tracked = computed(() => products.shopItems.filter((p) => p.status === 'instock'))

@@ -1,21 +1,28 @@
 <script setup>
-import { reactive, ref, watch } from 'vue'
-import { PRODUCT_TYPES, CATEGORIES } from '@/data/seed'
+import { computed, reactive, ref, watch } from 'vue'
+import { useProductsStore } from '@/store/products'
 import { fileToDataUrl } from '@/utils'
+
+const PRODUCT_TYPES = ['Wig', 'Bundle', 'Nails', 'Lashes', 'Brows', 'Pedicure', 'Piercing', 'Other']
 
 const props = defineProps({
   product: { type: Object, default: null }, // null = create
 })
 const emit = defineEmits(['save', 'cancel'])
 
+const products = useProductsStore()
+const categories = computed(() => products.categories)
+
 const blank = () => ({
   name: '',
   type: 'Wig',
-  category: 'Wigs & Bundles',
+  category_id: '',
   mode: 'shop',
   status: 'instock',
   price: null,
   compareAt: null,
+  deposit: null,
+  variant: '',
   description: '',
   badge: '',
 })
@@ -52,10 +59,12 @@ const onDrop = (e) => {
 
 const hydrate = (p) => {
   Object.assign(form, blank(), p ? {
-    name: p.name, type: p.type, category: p.category, mode: p.mode,
+    name: p.name, type: p.type, category_id: p.category, mode: p.mode,
     status: p.status, price: p.price, compareAt: p.compareAt,
+    deposit: p.deposit, variant: p.variant || '',
     description: p.description, badge: p.badge || '',
   } : {})
+  if (!form.category_id) form.category_id = categories.value[0]?.id || ''
   tagsText.value = p?.tags?.join(', ') || ''
   hasOptions.value = !!p?.options
   optionLabel.value = p?.options?.label || 'Length'
@@ -70,11 +79,13 @@ const submit = () => {
   const payload = {
     name: form.name.trim(),
     type: form.type,
-    category: form.category,
+    category_id: form.category_id,
     mode: form.mode,
     status: form.mode === 'shop' ? form.status : 'instock',
     price: Number(form.price) || 0,
-    compareAt: form.compareAt ? Number(form.compareAt) : null,
+    compare_at: form.compareAt ? Number(form.compareAt) : null,
+    deposit: Number(form.deposit) || 0,
+    variant: form.variant.trim() || null,
     description: form.description.trim(),
     badge: form.badge.trim() || null,
     tags: tagsText.value.split(',').map((t) => t.trim()).filter(Boolean),
@@ -143,10 +154,15 @@ const submit = () => {
       </div>
       <div class="field">
         <label>Collection</label>
-        <select v-model="form.category" class="select">
-          <option v-for="c in CATEGORIES" :key="c" :value="c">{{ c }}</option>
+        <select v-model="form.category_id" class="select">
+          <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
         </select>
       </div>
+    </div>
+
+    <div class="field">
+      <label>Variant subtitle</label>
+      <input v-model="form.variant" class="input" placeholder="e.g. Body wave · 180% (shows under the name)" />
     </div>
 
     <div class="field">
@@ -175,6 +191,12 @@ const submit = () => {
         <input v-model="form.compareAt" type="number" min="0" class="input" placeholder="Optional — shows a sale slash" />
         <span class="hint">Original price, struck through when higher.</span>
       </div>
+    </div>
+
+    <div class="field" style="max-width: 12rem">
+      <label>Deposit (₵)</label>
+      <input v-model="form.deposit" type="number" min="0" class="input" placeholder="0" />
+      <span class="hint">Secures a pre-order or booking.</span>
     </div>
 
     <div class="field">

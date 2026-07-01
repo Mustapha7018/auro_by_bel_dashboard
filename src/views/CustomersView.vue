@@ -1,35 +1,30 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useCustomersStore } from '@/store/customers'
-import { useOrdersStore, orderPaid } from '@/store/orders'
-import { useBookingsStore } from '@/store/bookings'
+import { normalizeBooking } from '@/store/bookings'
 import { money, shortDate, dayMonth } from '@/utils'
 import AppModal from '@/components/AppModal.vue'
 
 const customers = useCustomersStore()
-const orders = useOrdersStore()
-const bookings = useBookingsStore()
 
-const selected = ref(null)
+const detailOpen = ref(false)
+const detail = ref(null) // { customer, orders, bookings }
 
-const stats = (id) => {
-  const os = orders.forCustomer(id)
-  const spent = os.filter((o) => o.status !== 'cancelled').reduce((s, o) => s + orderPaid(o), 0)
-  return { orders: os.length, bookings: bookings.forCustomer(id).length, spent }
-}
+onMounted(() => customers.load())
 
-const rows = computed(() =>
-  customers.items.map((c) => ({ ...c, ...stats(c.id) })).sort((a, b) => b.spent - a.spent),
-)
+// server already returns orders/bookings counts + spent per customer
+const rows = computed(() => [...customers.items].sort((a, b) => b.spent - a.spent))
 
-const detail = computed(() => {
-  if (!selected.value) return null
-  return {
-    customer: selected.value,
-    orders: orders.forCustomer(selected.value.id),
-    bookings: bookings.forCustomer(selected.value.id),
+const openDetail = async (c) => {
+  detailOpen.value = true
+  detail.value = null
+  try {
+    const d = await customers.detail(c.id)
+    detail.value = { customer: d.customer, orders: d.orders, bookings: d.bookings.map(normalizeBooking) }
+  } catch {
+    detail.value = { customer: c, orders: [], bookings: [] }
   }
-})
+}
 
 const initials = (n) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 </script>
@@ -56,7 +51,7 @@ const initials = (n) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpp
           </tr>
         </thead>
         <tbody>
-          <tr v-for="c in rows" :key="c.id" style="cursor: pointer" @click="selected = c">
+          <tr v-for="c in rows" :key="c.id" style="cursor: pointer" @click="openDetail(c)">
             <td>
               <div class="cell-product">
                 <span class="cust-avatar">{{ initials(c.name) }}</span>
@@ -76,7 +71,7 @@ const initials = (n) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpp
       </table>
     </div>
 
-    <AppModal :open="!!selected" :title="selected?.name || ''" @close="selected = null">
+    <AppModal :open="detailOpen" :title="detail?.customer?.name || 'Customer'" @close="detailOpen = false">
       <template v-if="detail">
         <p class="cell-muted" style="margin-bottom: 1rem">{{ detail.customer.email }} · {{ detail.customer.phone }}</p>
 
@@ -84,7 +79,7 @@ const initials = (n) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpp
         <ul class="mini">
           <li v-for="o in detail.orders" :key="o.id">
             <span>{{ shortDate(o.createdAt) }} · {{ o.items.length }} item(s)</span>
-            <span><span class="pill" :class="{ 'pill--green': o.status==='delivered', 'pill--amber': o.status==='processing', 'pill--red': o.status==='cancelled' }">{{ o.status }}</span> {{ money(orderPaid(o)) }}</span>
+            <span><span class="pill" :class="{ 'pill--green': o.status==='delivered', 'pill--amber': o.status==='processing', 'pill--red': o.status==='cancelled' }">{{ o.status }}</span> {{ money(o.paid) }}</span>
           </li>
           <li v-if="!detail.orders.length" class="cell-muted">None yet.</li>
         </ul>
