@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '@/lib/api'
+import { withToast } from './toasts'
 
 export const WEEKDAYS = [
   { i: 1, label: 'Mon' },
@@ -35,12 +36,16 @@ export const useAvailabilityStore = defineStore('availability', {
     async _save() {
       this.saving = true
       try {
-        await api.saveAvailability({
-          working_days: this.workingDays,
-          open_hour: this.openHour,
-          close_hour: this.closeHour,
-          blocked_dates: this.blockedDates,
-        })
+        await withToast(
+          () =>
+            api.saveAvailability({
+              working_days: this.workingDays,
+              open_hour: this.openHour,
+              close_hour: this.closeHour,
+              blocked_dates: this.blockedDates,
+            }),
+          { success: 'Availability updated.' },
+        )
       } finally {
         this.saving = false
       }

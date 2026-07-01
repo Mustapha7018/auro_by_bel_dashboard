@@ -1,17 +1,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { api } from '@/lib/api'
+import { useToastsStore } from '@/store/toasts'
 import { money } from '@/utils'
 import LineChart from '@/components/LineChart.vue'
 import BarChart from '@/components/BarChart.vue'
 
+const toasts = useToastsStore()
 const data = ref(null)
 
 onMounted(async () => {
   try {
     data.value = await api.analytics()
-  } catch {
+  } catch (e) {
     data.value = { revenue: [], customers: [], bookings: [], topItems: [], topCustomers: [] }
+    toasts.error(e.message || 'Could not load analytics.')
   }
 })
 

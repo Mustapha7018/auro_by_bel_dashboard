@@ -1,12 +1,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useProductsStore } from '@/store/products'
+import { useConfirmStore } from '@/store/confirm'
 import { money } from '@/utils'
 import AppModal from '@/components/AppModal.vue'
 import ProductForm from '@/components/ProductForm.vue'
 import ProductThumb from '@/components/ProductThumb.vue'
 
 const products = useProductsStore()
+const confirm = useConfirmStore()
 
 const search = ref('')
 const filter = ref('all') // all | shop | appointment
@@ -39,18 +41,24 @@ const onSave = async (payload) => {
     if (editing.value) await products.update(editing.value.id, payload)
     else await products.add(payload)
     modalOpen.value = false
-  } catch (e) {
-    alert(e.message || 'Could not save the product.')
+  } catch {
+    /* toast already shown by the store */
   } finally {
     saving.value = false
   }
 }
 const onDelete = async (p) => {
-  if (confirm(`Delete “${p.name}”?`)) {
+  const ok = await confirm.ask({
+    title: 'Delete product',
+    message: `Delete “${p.name}”? This can't be undone.`,
+    confirmLabel: 'Delete',
+    danger: true,
+  })
+  if (ok) {
     try {
       await products.remove(p.id)
-    } catch (e) {
-      alert(e.message || 'Could not delete.')
+    } catch {
+      /* toast already shown */
     }
   }
 }

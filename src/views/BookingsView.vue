@@ -1,18 +1,26 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useBookingsStore, BOOKING_STATUSES } from '@/store/bookings'
+import { useConfirmStore } from '@/store/confirm'
 import { money, dayMonth } from '@/utils'
 
 const bookings = useBookingsStore()
+const confirm = useConfirmStore()
 const filter = ref('all')
 onMounted(() => bookings.load())
 
 const onDelete = async (b) => {
-  if (confirm(`Delete ${b.customerName}'s ${b.service} booking?`)) {
+  const ok = await confirm.ask({
+    title: 'Delete booking',
+    message: `Delete ${b.customerName}'s ${b.service} booking?`,
+    confirmLabel: 'Delete',
+    danger: true,
+  })
+  if (ok) {
     try {
       await bookings.remove(b.id)
-    } catch (e) {
-      alert(e.message || 'Could not delete.')
+    } catch {
+      /* toast already shown */
     }
   }
 }

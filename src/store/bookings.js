@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '@/lib/api'
+import { withToast } from './toasts'
 
 export const BOOKING_STATUSES = ['requested', 'confirmed', 'completed', 'cancelled']
 
@@ -41,19 +42,21 @@ export const useBookingsStore = defineStore('bookings', {
       if (this.loaded || this.loading) return
       this.loading = true
       try {
-        this.items = (await api.bookings()).map(normalizeBooking)
+        const rows = await withToast(() => api.bookings(), { error: 'Could not load bookings.' })
+        this.items = rows.map(normalizeBooking)
         this.loaded = true
       } finally {
         this.loading = false
       }
     },
     async setStatus(id, status) {
-      const updated = normalizeBooking(await api.setBookingStatus(id, status))
+      const raw = await withToast(() => api.setBookingStatus(id, status), { success: 'Booking updated.' })
+      const updated = normalizeBooking(raw)
       const i = this.items.findIndex((b) => b.id === id)
       if (i >= 0) this.items[i] = updated
     },
     async remove(id) {
-      await api.deleteBooking(id)
+      await withToast(() => api.deleteBooking(id), { success: 'Booking deleted.' })
       this.items = this.items.filter((b) => b.id !== id)
     },
   },

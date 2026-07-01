@@ -3,6 +3,8 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SidebarNav from '@/components/SidebarNav.vue'
 import LoginView from '@/components/LoginView.vue'
+import ToastHost from '@/components/ToastHost.vue'
+import ConfirmHost from '@/components/ConfirmHost.vue'
 import { useAuthStore } from '@/store/auth'
 
 const auth = useAuthStore()
@@ -18,7 +20,12 @@ onMounted(() => auth.init())
 </script>
 
 <template>
-  <div v-if="!auth.ready" class="loading">Loading…</div>
+  <div v-if="!auth.ready" class="boot">
+    <div class="boot__inner">
+      <p class="boot__mark">Aura <span>by</span> Bel</p>
+      <p class="boot__msg">Loading the studio…</p>
+    </div>
+  </div>
 
   <LoginView v-else-if="!auth.authed" />
 
@@ -32,14 +39,39 @@ onMounted(() => auth.init())
       <RouterView />
     </div>
   </div>
+
+  <ToastHost />
+  <ConfirmHost />
 </template>
 
 <style scoped>
-.loading {
+.boot {
   min-height: 100dvh;
   display: grid;
   place-items: center;
+  padding: 2rem;
+}
+.boot__inner {
+  text-align: center;
+}
+.boot__mark {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.boot__mark span {
+  font-style: italic;
+  font-weight: 400;
   color: var(--ink-faint);
+}
+.boot__msg {
+  margin-top: 0.7rem;
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+  animation: pulse 1.4s var(--ease) infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 .app__main {
   margin-left: var(--sidebar-w);

@@ -1,7 +1,10 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { api } from '@/lib/api'
+import { useToastsStore } from '@/store/toasts'
 import AppModal from './AppModal.vue'
+
+const toasts = useToastsStore()
 
 const props = defineProps({ open: { type: Boolean, default: false } })
 const emit = defineEmits(['close'])
@@ -39,6 +42,7 @@ const submit = async () => {
   busy.value = true
   try {
     await api.changePassword({ current_password: current.value, new_password: next.value })
+    toasts.success('Password updated.')
     done.value = true
   } catch (e) {
     error.value = e.message || 'Could not change password.'

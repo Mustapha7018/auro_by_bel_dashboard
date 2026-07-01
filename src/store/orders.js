@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '@/lib/api'
+import { withToast } from './toasts'
 
 export const ORDER_STATUSES = ['processing', 'delivered', 'cancelled']
 export const PAYMENT_METHODS = ['Cash', 'Mobile Money', 'Bank transfer', 'Card']
@@ -28,7 +29,7 @@ export const useOrdersStore = defineStore('orders', {
       if (this.loaded || this.loading) return
       this.loading = true
       try {
-        this.items = await api.orders()
+        this.items = await withToast(() => api.orders(), { error: 'Could not load orders.' })
         this.loaded = true
       } finally {
         this.loading = false
@@ -39,13 +40,17 @@ export const useOrdersStore = defineStore('orders', {
       if (i >= 0) this.items[i] = order
     },
     async setStatus(id, status) {
-      this._replace(await api.setOrderStatus(id, status))
+      this._replace(await withToast(() => api.setOrderStatus(id, status), { success: 'Order updated.' }))
     },
     async addPayment(id, { amount, method = 'Cash', note = '' }) {
-      this._replace(await api.addPayment(id, { amount: Number(amount), method, note }))
+      this._replace(
+        await withToast(() => api.addPayment(id, { amount: Number(amount), method, note }), {
+          success: 'Payment recorded.',
+        }),
+      )
     },
     async removePayment(id, paymentId) {
-      const updated = await api.removePayment(id, paymentId)
+      const updated = await withToast(() => api.removePayment(id, paymentId), { success: 'Payment removed.' })
       if (updated && updated.id) this._replace(updated)
     },
   },

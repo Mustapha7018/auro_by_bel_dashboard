@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '@/lib/api'
+import { withToast } from './toasts'
 
 export const useCustomersStore = defineStore('customers', {
   state: () => ({ items: [], loaded: false, loading: false }),
@@ -14,7 +15,7 @@ export const useCustomersStore = defineStore('customers', {
       if (this.loaded || this.loading) return
       this.loading = true
       try {
-        this.items = await api.customers()
+        this.items = await withToast(() => api.customers(), { error: 'Could not load customers.' })
         this.loaded = true
       } finally {
         this.loading = false

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '@/lib/api'
+import { withToast } from './toasts'
 
 const LOW_STOCK = 3
 
@@ -26,7 +27,10 @@ export const useProductsStore = defineStore('products', {
       if (this.loaded || this.loading) return
       this.loading = true
       try {
-        const [items, categories] = await Promise.all([api.products(), api.categories()])
+        const [items, categories] = await withToast(
+          () => Promise.all([api.products(), api.categories()]),
+          { error: 'Could not load products.' },
+        )
         this.items = items
         this.categories = categories
         this.loaded = true
@@ -35,20 +39,22 @@ export const useProductsStore = defineStore('products', {
       }
     },
     async add(payload) {
-      const created = await api.createProduct(payload)
+      const created = await withToast(() => api.createProduct(payload), { success: 'Product added.' })
       this.items.unshift(created)
     },
     async update(id, payload) {
-      const updated = await api.updateProduct(id, payload)
+      const updated = await withToast(() => api.updateProduct(id, payload), { success: 'Product updated.' })
       const i = this.items.findIndex((p) => p.id === id)
       if (i >= 0) this.items[i] = updated
     },
     async remove(id) {
-      await api.deleteProduct(id)
+      await withToast(() => api.deleteProduct(id), { success: 'Product deleted.' })
       this.items = this.items.filter((p) => p.id !== id)
     },
     async setStock(id, value) {
-      const { stock } = await api.setStock(id, Math.max(0, Number(value) || 0))
+      const { stock } = await withToast(() => api.setStock(id, Math.max(0, Number(value) || 0)), {
+        error: 'Could not update stock.',
+      })
       const p = this.items.find((x) => x.id === id)
       if (p) p.stock = stock
     },
