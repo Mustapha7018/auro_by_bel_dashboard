@@ -34,7 +34,9 @@ const nextBookings = computed(() => bookings.upcoming.slice(0, 5))
     <div class="page-head">
       <div>
         <h1>Hi Bel 👋</h1>
-        <p>Here's what's happening across the studio — {{ customers.count }} clients and counting.</p>
+        <p>
+          Here's what's happening across the studio<template v-if="customers.count"> — {{ customers.count }} client{{ customers.count === 1 ? '' : 's' }} and counting</template>.
+        </p>
       </div>
     </div>
 

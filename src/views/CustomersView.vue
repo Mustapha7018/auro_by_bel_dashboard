@@ -67,6 +67,9 @@ const initials = (n) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpp
             <td>{{ c.bookings }}</td>
             <td class="cell-strong">{{ money(c.spent) }}</td>
           </tr>
+          <tr v-if="!rows.length">
+            <td colspan="6"><p class="empty">No customers yet — they'll appear here after their first order or booking.</p></td>
+          </tr>
         </tbody>
       </table>
     </div>
