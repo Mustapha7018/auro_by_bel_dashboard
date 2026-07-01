@@ -76,4 +76,7 @@ export const api = {
 
   // analytics
   analytics: () => request('/admin/analytics'),
+
+  // maintenance
+  resetActivity: () => request('/admin/reset', { method: 'POST' }),
 }

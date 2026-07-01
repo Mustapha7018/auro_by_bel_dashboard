@@ -1,10 +1,13 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useOrdersStore, orderPaid } from '@/store/orders'
 import { useBookingsStore } from '@/store/bookings'
 import { useProductsStore } from '@/store/products'
 import { useCustomersStore } from '@/store/customers'
 import { money, dayMonth, shortDate } from '@/utils'
+import ResetActivity from '@/components/ResetActivity.vue'
+
+const resetOpen = ref(false)
 
 const orders = useOrdersStore()
 const bookings = useBookingsStore()
@@ -38,7 +41,10 @@ const nextBookings = computed(() => bookings.upcoming.slice(0, 5))
           Here's what's happening across the studio<template v-if="customers.count"> — {{ customers.count }} client{{ customers.count === 1 ? '' : 's' }} and counting</template>.
         </p>
       </div>
+      <button class="btn btn--sm" @click="resetOpen = true">Reset test data</button>
     </div>
+
+    <ResetActivity :open="resetOpen" @close="resetOpen = false" />
 
     <div class="grid grid--stats" style="margin-bottom: 1.25rem">
       <component
