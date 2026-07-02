@@ -37,8 +37,24 @@ const form = reactive(blank())
 const tagsText = ref('')
 const hasOptions = ref(false)
 const optionLabel = ref('Length')
-const optionValuesText = ref('')
+const optionValues = ref([])
+const optionDraft = ref('')
 const stock = ref(0)
+
+const addChip = () => {
+  const v = optionDraft.value.trim()
+  if (v && !optionValues.value.includes(v)) optionValues.value.push(v)
+  optionDraft.value = ''
+}
+const removeChip = (i) => optionValues.value.splice(i, 1)
+const onChipKey = (e) => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault()
+    addChip()
+  } else if (e.key === 'Backspace' && !optionDraft.value && optionValues.value.length) {
+    optionValues.value.pop()
+  }
+}
 const image = ref('')
 const uploading = ref(false)
 const dragging = ref(false)
@@ -75,7 +91,8 @@ const hydrate = (p) => {
   tagsText.value = p?.tags?.join(', ') || ''
   hasOptions.value = !!p?.options
   optionLabel.value = p?.options?.label || 'Length'
-  optionValuesText.value = p?.options?.values?.join(', ') || ''
+  optionValues.value = p?.options?.values ? [...p.options.values] : []
+  optionDraft.value = ''
   stock.value = p?.stock ?? 0
   image.value = p?.image || ''
 }
@@ -96,11 +113,8 @@ const submit = () => {
     badge: form.badge.trim() || null,
     tags: tagsText.value.split(',').map((t) => t.trim()).filter(Boolean),
     options:
-      hasOptions.value && optionValuesText.value.trim()
-        ? {
-            label: optionLabel.value.trim() || 'Option',
-            values: optionValuesText.value.split(',').map((v) => v.trim()).filter(Boolean),
-          }
+      hasOptions.value && optionValues.value.length
+        ? { label: optionLabel.value.trim() || 'Option', values: [...optionValues.value] }
         : null,
     stock: form.mode === 'shop' ? Number(stock.value) || 0 : null,
     image: image.value || '',
@@ -227,7 +241,21 @@ const submit = () => {
       </div>
       <div class="field">
         <label>Variant values</label>
-        <input v-model="optionValuesText" class="input" placeholder='16", 18", 20", 22"' />
+        <div class="chip-input" @click="$refs.chipField?.focus()">
+          <span v-for="(v, i) in optionValues" :key="i" class="chip-input__chip">
+            {{ v }}
+            <button type="button" class="chip-input__x" aria-label="Remove" @click.stop="removeChip(i)">✕</button>
+          </span>
+          <input
+            ref="chipField"
+            v-model="optionDraft"
+            class="chip-input__field"
+            :placeholder="optionValues.length ? '' : 'Type a value, press Enter'"
+            @keydown="onChipKey"
+            @blur="addChip"
+          />
+        </div>
+        <span class="hint">Press Enter (or comma) after each value.</span>
       </div>
     </div>
 
@@ -257,6 +285,53 @@ const submit = () => {
   font-weight: 500;
   font-size: 0.85rem;
   cursor: pointer;
+}
+.chip-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.4rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: text;
+}
+.chip-input:focus-within {
+  border-color: var(--accent);
+}
+.chip-input__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  padding: 0.2rem 0.2rem 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+.chip-input__x {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  color: var(--accent-deep);
+}
+.chip-input__x:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+.chip-input__field {
+  flex: 1;
+  min-width: 6rem;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 0.85rem;
+  padding: 0.25rem;
 }
 .form-actions {
   display: flex;
