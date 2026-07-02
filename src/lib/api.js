@@ -12,8 +12,9 @@ export const setToken = (t) => {
 }
 
 async function request(path, { method = 'GET', body, auth = true } = {}) {
+  const isForm = body instanceof FormData
   const headers = {}
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
   if (auth) {
     const t = getToken()
     if (t) headers.Authorization = `Bearer ${t}`
@@ -21,7 +22,7 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body !== undefined ? (isForm ? body : JSON.stringify(body)) : undefined,
   })
   if (!res.ok) {
     let detail = `Something went wrong (${res.status}).`
@@ -50,6 +51,11 @@ export const api = {
   // products
   products: () => request('/admin/products'),
   categories: () => request('/admin/categories'),
+  uploadImage: (blob) => {
+    const form = new FormData()
+    form.append('file', blob, 'product.jpg')
+    return request('/admin/upload', { method: 'POST', body: form })
+  },
   createProduct: (body) => request('/admin/products', { method: 'POST', body }),
   updateProduct: (id, body) => request(`/admin/products/${id}`, { method: 'PUT', body }),
   deleteProduct: (id) => request(`/admin/products/${id}`, { method: 'DELETE' }),

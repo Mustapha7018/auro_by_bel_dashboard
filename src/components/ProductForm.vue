@@ -1,7 +1,11 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useProductsStore } from '@/store/products'
-import { fileToDataUrl } from '@/utils'
+import { useToastsStore } from '@/store/toasts'
+import { api } from '@/lib/api'
+import { fileToBlob, fileToDataUrl } from '@/utils'
+
+const toasts = useToastsStore()
 
 const PRODUCT_TYPES = ['Wig', 'Bundle', 'Nails', 'Lashes', 'Brows', 'Pedicure', 'Piercing', 'Other']
 
@@ -44,9 +48,20 @@ const loadFile = async (file) => {
   if (!file) return
   uploading.value = true
   try {
-    image.value = await fileToDataUrl(file)
-  } catch {
-    alert('Could not read that image.')
+    const blob = await fileToBlob(file)
+    try {
+      const { url } = await api.uploadImage(blob)
+      image.value = url // hosted object-storage URL
+    } catch (e) {
+      if (e.status === 503) {
+        // object storage not set up yet — keep the current inline behaviour
+        image.value = await fileToDataUrl(file)
+      } else {
+        throw e
+      }
+    }
+  } catch (e) {
+    toasts.error(e.message || 'Could not upload that image.')
   } finally {
     uploading.value = false
     if (fileInput.value) fileInput.value.value = ''

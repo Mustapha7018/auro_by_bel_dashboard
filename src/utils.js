@@ -15,7 +15,7 @@ export const uid = (prefix = 'id') => `${prefix}_${Date.now().toString(36)}${Mat
  * return a compressed JPEG data URL. Keeps localStorage small now; swap for a
  * real upload (returning a URL) once the backend exists.
  */
-export function fileToDataUrl(file, max = 700, quality = 0.82) {
+function drawResized(file, max, quality, output) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) return reject(new Error('Not an image'))
     const reader = new FileReader()
@@ -29,7 +29,7 @@ export function fileToDataUrl(file, max = 700, quality = 0.82) {
         canvas.width = w
         canvas.height = h
         canvas.getContext('2d').drawImage(img, 0, 0, w, h)
-        resolve(canvas.toDataURL('image/jpeg', quality))
+        output(canvas, resolve, reject)
       }
       img.onerror = reject
       img.src = reader.result
@@ -37,4 +37,21 @@ export function fileToDataUrl(file, max = 700, quality = 0.82) {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+export function fileToDataUrl(file, max = 700, quality = 0.82) {
+  return drawResized(file, max, quality, (canvas, resolve) =>
+    resolve(canvas.toDataURL('image/jpeg', quality)),
+  )
+}
+
+/** Resize an uploaded image to a JPEG Blob (for object-storage upload). */
+export function fileToBlob(file, max = 900, quality = 0.85) {
+  return drawResized(file, max, quality, (canvas, resolve, reject) =>
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Could not process image'))),
+      'image/jpeg',
+      quality,
+    ),
+  )
 }
