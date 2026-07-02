@@ -9,6 +9,7 @@ const routes = [
   { path: '/orders', name: 'orders', component: () => import('@/views/OrdersView.vue'), meta: { title: 'Orders' } },
   { path: '/customers', name: 'customers', component: () => import('@/views/CustomersView.vue'), meta: { title: 'Customers' } },
   { path: '/analytics', name: 'analytics', component: () => import('@/views/AnalyticsView.vue'), meta: { title: 'Analytics' } },
+  { path: '/gallery', name: 'gallery', component: () => import('@/views/GalleryView.vue'), meta: { title: 'Gallery' } },
 ]
 
 export default createRouter({

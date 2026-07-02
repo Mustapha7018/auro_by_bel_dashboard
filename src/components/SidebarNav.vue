@@ -22,6 +22,7 @@ const links = [
   { to: '/orders', icon: 'orders', label: 'Orders' },
   { to: '/customers', icon: 'customers', label: 'Customers' },
   { to: '/analytics', icon: 'analytics', label: 'Analytics' },
+  { to: '/gallery', icon: 'gallery', label: 'Gallery' },
 ]
 
 const badge = (to) => {

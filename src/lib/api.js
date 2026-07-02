@@ -76,6 +76,15 @@ export const api = {
   addPayment: (id, body) => request(`/admin/orders/${id}/payments`, { method: 'POST', body }),
   removePayment: (id, pid) => request(`/admin/orders/${id}/payments/${pid}`, { method: 'DELETE' }),
 
+  // gallery
+  gallery: () => request('/admin/gallery'),
+  addGalleryItem: (file) => {
+    const form = new FormData()
+    form.append('file', file, file.name)
+    return request('/admin/gallery', { method: 'POST', body: form })
+  },
+  deleteGalleryItem: (id) => request(`/admin/gallery/${id}`, { method: 'DELETE' }),
+
   // customers
   customers: () => request('/admin/customers'),
   customer: (id) => request(`/admin/customers/${id}`),

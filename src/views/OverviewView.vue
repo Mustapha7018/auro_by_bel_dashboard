@@ -41,7 +41,12 @@ const nextBookings = computed(() => bookings.upcoming.slice(0, 5))
           Here's what's happening across the studio<template v-if="customers.count"> — {{ customers.count }} client{{ customers.count === 1 ? '' : 's' }} and counting</template>.
         </p>
       </div>
-      <button class="btn btn--sm" @click="resetOpen = true">Reset test data</button>
+      <div style="display: flex; gap: 0.6rem; align-items: center">
+        <a class="btn btn--sm btn--primary" href="https://aurabybel.shop/" target="_blank" rel="noopener">
+          View live site ↗
+        </a>
+        <button class="btn btn--sm" @click="resetOpen = true">Reset test data</button>
+      </div>
     </div>
 
     <ResetActivity :open="resetOpen" @close="resetOpen = false" />
