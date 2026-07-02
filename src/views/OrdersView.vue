@@ -75,7 +75,7 @@ const payTime = (ts) => new Date(ts).toLocaleDateString('en-GB', { day: 'numeric
         <tbody>
           <tr v-for="o in filtered" :key="o.id">
             <td>
-              <div class="cell-strong">#{{ o.id }}</div>
+              <div class="cell-strong">#{{ o.ref }}</div>
               <div class="cell-muted" style="font-size: 0.74rem">{{ shortDate(o.createdAt) }}</div>
             </td>
             <td>{{ o.customerName }}</td>
@@ -104,7 +104,7 @@ const payTime = (ts) => new Date(ts).toLocaleDateString('en-GB', { day: 'numeric
     </div>
 
     <!-- Payment manager -->
-    <AppModal :open="payOpen" :title="active ? `Payments · #${active.id}` : ''" @close="payOpen = false">
+    <AppModal :open="payOpen" :title="active ? `Payments · #${active.ref}` : ''" @close="payOpen = false">
       <template v-if="active">
         <div class="paysum">
           <div><span>Total</span><strong>{{ money(active.total) }}</strong></div>
