@@ -41,8 +41,8 @@ const submit = async () => {
 <template>
   <AppModal :open="open" title="Reset test data" @close="emit('close')">
     <p style="color: var(--ink-soft); margin-bottom: 0.4rem">
-      This permanently deletes <strong>all orders, payments, bookings and customers</strong>.
-      Your products, collections, availability and login are kept.
+      This permanently deletes <strong>all products, orders, payments, bookings and customers</strong>.
+      Your collections, availability and login are kept.
     </p>
     <p style="color: var(--red); font-size: 0.8rem; margin-bottom: 1rem">This can't be undone.</p>
 
